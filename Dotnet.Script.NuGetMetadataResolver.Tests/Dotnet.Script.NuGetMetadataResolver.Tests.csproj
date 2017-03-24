@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Microsoft.CodeAnalysis.NuGet\Dotnet.Script.NuGetMetadataResolver.csproj" />
+    <ProjectReference Include="..\Dotnet.Script.NuGetMetadataResolver\Dotnet.Script.NuGetMetadataResolver.csproj" />
   </ItemGroup>
 
   <ItemGroup>
