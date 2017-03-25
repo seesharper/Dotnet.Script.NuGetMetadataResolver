@@ -3,7 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Threading;
-    using Microsoft.Extensions.Logging;
+    using Logging;    
     using NuGet.Configuration;
     using NuGet.Packaging.Core;
     using NuGet.Protocol;
@@ -16,12 +16,11 @@
     public class NuGetPackageSearcher : INugetPackageSearcher
     {
         private readonly INuGetPackageSourceProvider nuGetPackageSourceProvider;
-        private readonly ILoggerFactory loggerFactory;
 
-        public NuGetPackageSearcher(INuGetPackageSourceProvider nuGetPackageSourceProvider, ILoggerFactory loggerFactory)
+
+        public NuGetPackageSearcher(INuGetPackageSourceProvider nuGetPackageSourceProvider)
         {
-            this.nuGetPackageSourceProvider = nuGetPackageSourceProvider;
-            this.loggerFactory = loggerFactory;
+            this.nuGetPackageSourceProvider = nuGetPackageSourceProvider;            
         }
 
         /// <inheritdoc />
@@ -42,7 +41,7 @@
 
         private NuGetPackageSearchResult Search(PackageSource packageSource, PackageIdentity packageIdentity)
         {
-            var logger = new NuGetLogger(loggerFactory);            
+            var logger = new NuGetLogger();            
             List<Lazy<INuGetResourceProvider>> providers = new List<Lazy<INuGetResourceProvider>>();
             providers.AddRange(Repository.Provider.GetCoreV3());            
             SourceRepository sourceRepository = new SourceRepository(packageSource, providers);
@@ -64,51 +63,51 @@
 
         private class NuGetLogger : NuGet.Common.ILogger
         {
-            private readonly ILogger logger;
+            private readonly Action<LogEntry> logger;
 
-            public NuGetLogger(ILoggerFactory loggerFactory)
+            public NuGetLogger()
             {
-                logger = loggerFactory.CreateLogger<NuGetLogger>();
+                logger = LogFactory.GetLogger<NuGetLogger>();
             }
 
             public void LogDebug(string data)
             {
-                logger.LogDebug(data);
+                logger.Debug(data);
             }
 
             public void LogError(string data)
             {
-                logger.LogError(data);
+                logger.Error(data);
             }
 
             public void LogErrorSummary(string data)
             {
-                logger.LogError(data);
+                logger.Error(data);
             }
 
             public void LogInformation(string data)
             {
-                logger.LogInformation(data);
+                logger.Info(data);
             }
 
             public void LogInformationSummary(string data)
             {
-                logger.LogInformation(data);
+                logger.Info(data);
             }
 
             public void LogMinimal(string data)
             {
-                logger.LogInformation(data);
+                logger.Info(data);
             }
 
             public void LogVerbose(string data)
             {
-                logger.LogInformation(data);
+                logger.Info(data);
             }
 
             public void LogWarning(string data)
             {
-                logger.LogWarning(data);
+                logger.Warning(data);
             }
         }
     }

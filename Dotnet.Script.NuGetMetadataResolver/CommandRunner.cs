@@ -2,27 +2,18 @@
 {
     using System;
     using System.Diagnostics;
-    using Microsoft.Extensions.Logging;
+    using Logging;    
 
     /// <summary>
     /// A class that is capable of running a command.
     /// </summary>
     public class CommandRunner : ICommandRunner
     {
-        private readonly ILogger logger;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CommandRunner"/> class.
-        /// </summary>
-        /// <param name="loggerFactory"></param>
-        public CommandRunner(ILoggerFactory loggerFactory)
-        {
-            logger = loggerFactory.CreateLogger<CommandRunner>();
-        }
-
+        private readonly Action<LogEntry> logger;
+       
         public void Execute(string commandPath, string arguments)
         {
-            logger.LogInformation($"Executing {commandPath} {arguments}");
+            logger.Info($"Executing {commandPath} {arguments}");
             var startInformation = CreateProcessStartInfo(commandPath, arguments);
             var process = CreateProcess(startInformation);            
             RunAndWait(process);
@@ -48,8 +39,8 @@
         {
             var process = new Process();
             process.StartInfo = startInformation;
-            process.ErrorDataReceived += (s, a) => logger.LogError(a.Data);
-            process.OutputDataReceived += (s, a) => logger.LogInformation(a.Data);
+            process.ErrorDataReceived += (s, a) => logger.Error(a.Data);
+            process.OutputDataReceived += (s, a) => logger.Info(a.Data);
             return process;
         }
 

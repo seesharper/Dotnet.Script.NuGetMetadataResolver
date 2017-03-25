@@ -5,7 +5,7 @@
     using System.IO;
     using System.Linq;
     using System.Threading;
-    using Microsoft.Extensions.Logging;
+    using Logging;
     using NuGet.Configuration;
     using NuGet.Frameworks;
     using NuGet.Packaging;
@@ -26,7 +26,7 @@
         private readonly ICommandRunner commandRunner;
         private readonly INugetPackageSearcher nugetPackageSearcher;        
         private readonly string rootFolder;
-        private readonly ILogger logger;
+        private readonly Action<LogEntry> logger;
         private readonly PackagePathResolver packagePathResolver;
         private readonly NuGetFramework netCoreAppFramework;
 
@@ -35,14 +35,12 @@
         /// </summary>
         /// <param name="commandRunner">The <see cref="ICommandRunner"/> that is responsible for 
         /// executing the NuGet command.</param>
-        /// <param name="nugetPackageSearcher">The <see cref="INugetPackageSearcher"/> that is responsible for searching for packages.</param>
-        /// <param name="loggerFactory">The <see cref="ILoggerFactory"/> that is responsible for creating <see cref="ILogger"/> instances.</param>
+        /// <param name="nugetPackageSearcher">The <see cref="INugetPackageSearcher"/> that is responsible for searching for packages.</param>        
         /// <param name="rootFolder">The absolute path to script root folder</param>
-        public NuGetPackageInstaller(ICommandRunner commandRunner, INugetPackageSearcher nugetPackageSearcher,ILoggerFactory loggerFactory, string rootFolder)
+        public NuGetPackageInstaller(ICommandRunner commandRunner, INugetPackageSearcher nugetPackageSearcher,string rootFolder)
         {
             netCoreAppFramework = NuGetFramework.Parse(".NETCoreApp,Version=v1.1");
-            packagePathResolver = new PackagePathResolver(rootFolder);
-            logger = loggerFactory.CreateLogger<NuGetPackageInstaller>();        
+            packagePathResolver = new PackagePathResolver(rootFolder);            
             this.commandRunner = commandRunner;
             this.nugetPackageSearcher = nugetPackageSearcher;            
             this.rootFolder = rootFolder;
@@ -57,8 +55,8 @@
             var downloadResourceResult = GlobalPackagesFolderUtility.GetPackage(packageIdentity, globalPackagesFolder);
             if (downloadResourceResult == null)
             {
-                logger.LogInformation($"Package {packageIdentity} not found in the global packages folder {globalPackagesFolder}");
-                logger.LogInformation($"Installing package {packageIdentity.Id}, Version {packageIdentity.Version}");
+                logger.Info($"Package {packageIdentity} not found in the global packages folder {globalPackagesFolder}");
+                logger.Info($"Installing package {packageIdentity.Id}, Version {packageIdentity.Version}");
                 var searchResult = nugetPackageSearcher.Search(packageIdentity);
                 if (searchResult == null)
                 {
