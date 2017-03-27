@@ -4,15 +4,13 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Threading;
     using Logging;
     using NuGet.Configuration;
     using NuGet.Frameworks;
     using NuGet.Packaging;
     using NuGet.Packaging.Core;
     using NuGet.Protocol;
-    using NuGet.Protocol.Core.Types;
-    
+
 
     /// <summary>
     /// A <see cref="INuGetPackageInstaller"/> that installs packages using the NuGet command    
@@ -24,31 +22,33 @@
     public class NuGetPackageInstaller : INuGetPackageInstaller
     {
         private readonly ICommandRunner commandRunner;
-        private readonly INugetPackageSearcher nugetPackageSearcher;        
+        private readonly INugetPackageSearcher nugetPackageSearcher;
+        private readonly NuGetFramework framework;
         private readonly string rootFolder;
-        private readonly Action<LogEntry> logger;
-        private readonly PackagePathResolver packagePathResolver;
-        private readonly NuGetFramework netCoreAppFramework;
+        private readonly Action<LogEntry> logger;        
+        
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NuGetPackageInstaller"/> class.
         /// </summary>
         /// <param name="commandRunner">The <see cref="ICommandRunner"/> that is responsible for 
         /// executing the NuGet command.</param>
-        /// <param name="nugetPackageSearcher">The <see cref="INugetPackageSearcher"/> that is responsible for searching for packages.</param>        
+        /// <param name="nugetPackageSearcher">The <see cref="INugetPackageSearcher"/> that is responsible for searching for packages.</param>
+        /// <param name="framework">The <see cref="NuGetFramework"/> that indicates the context for which to install packages.</param>
         /// <param name="rootFolder">The absolute path to script root folder</param>
-        public NuGetPackageInstaller(ICommandRunner commandRunner, INugetPackageSearcher nugetPackageSearcher,string rootFolder)
-        {
-            netCoreAppFramework = NuGetFramework.Parse(".NETCoreApp,Version=v1.1");
-            packagePathResolver = new PackagePathResolver(rootFolder);            
+        public NuGetPackageInstaller(ICommandRunner commandRunner, INugetPackageSearcher nugetPackageSearcher, NuGetFramework framework,string rootFolder)
+        {            
             this.commandRunner = commandRunner;
-            this.nugetPackageSearcher = nugetPackageSearcher;            
-            this.rootFolder = rootFolder;
+            this.nugetPackageSearcher = nugetPackageSearcher;
+            this.framework = framework;
+            this.rootFolder = rootFolder;            
+            logger = LogFactory.GetLogger<NuGetPackageInstaller>();
         }
 
         /// <inheritdoc />
         public IEnumerable<string> Install(PackageIdentity packageIdentity)
         {
+            logger.Info($"Installing package {packageIdentity} in the context of {framework}.");
             var defaultSettings = Settings.LoadDefaultSettings(rootFolder);
             NuGetPathContext nugetPathContext = NuGetPathContext.Create(defaultSettings);
             var globalPackagesFolder = nugetPathContext.UserPackageFolder;
@@ -73,19 +73,10 @@
             var installPath = versionFolderPathResolver.GetInstallPath(packageIdentity.Id, packageIdentity.Version);
                         
             FrameworkReducer reducer = new FrameworkReducer();
-            var nearest = reducer.GetNearest(netCoreAppFramework, supportedFrameworks);
+            var nearest = reducer.GetNearest(framework, supportedFrameworks);
 
-            // Find the nearest dependency set that matches the nearest framework for this package
-
-            //var dependencySetFrameworks = searchResult.PackageSearchMetadata.DependencySets.Select(d => d.TargetFramework);
-            //var nearestDependencySetFramework = reducer.GetNearest(nearest, dependencySetFrameworks);
-            //var dependencySet =
-            //    searchResult.PackageSearchMetadata.DependencySets.Single(
-            //        ds => ds.TargetFramework == nearestDependencySetFramework);
-            
-            
-            // dependencies with target framework any is already installed.
-            // Still need to figure out the nearest framework for Any dependencies.
+            // NOTE: We don't look for dependencies and try to install them yet.
+            // Dependencies to other packages needs their own "#r nuget:packagename/version" reference in the script file.
 
             var frameworkSpecificGroup = packageReader.GetLibItems().SingleOrDefault(i => i.TargetFramework == nearest);
             var files = frameworkSpecificGroup.Items.Select(i => i.ToLower()).Where(i => i.EndsWith("dll") && !i.EndsWith("resources.dll"));

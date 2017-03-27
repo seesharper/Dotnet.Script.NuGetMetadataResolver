@@ -5,7 +5,8 @@
     using System.Linq;
     using System.Text.RegularExpressions;
     using Logging;
-    using Microsoft.CodeAnalysis;    
+    using Microsoft.CodeAnalysis;
+    using NuGet.Frameworks;
     using NuGet.Packaging.Core;
     using NuGet.Versioning;
 
@@ -29,6 +30,16 @@
             logger = LogFactory.GetLogger<NuGetMetadataReferenceResolver>();            
             this.metadataReferenceResolver = metadataReferenceResolver;            
             this.nuGetPackageInstaller = nuGetPackageInstaller;            
+        }
+
+        public static NuGetMetadataReferenceResolver Create(
+            MetadataReferenceResolver metadataReferenceResolver,
+            NuGetFramework framework,
+            string rootFolder)
+        {
+            return new NuGetMetadataReferenceResolver(metadataReferenceResolver,
+                new NuGetPackageInstaller(new CommandRunner(),
+                    new NuGetPackageSearcher(new NuGetPackageSourceProvider(rootFolder)), framework ,rootFolder));
         }
 
         /// <inheritdoc />
@@ -64,7 +75,7 @@
             // Require Major, Minor and Revision before considering the reference to be valid.
             // This is to prevent premature installalation of packages during typing in the editor.
 
-            var regex = new Regex(@"(.+)\/(\d\.\d\.\d)");
+            var regex = new Regex(@"nuget:(.+)\/(\d\.\d\.\d)", RegexOptions.IgnoreCase);
             var match = regex.Match(nuGetReference);
             if (match.Success)
             {

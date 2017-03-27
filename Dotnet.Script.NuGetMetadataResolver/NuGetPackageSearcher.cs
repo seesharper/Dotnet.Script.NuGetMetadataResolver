@@ -39,7 +39,7 @@
             return null;
         }
 
-        private NuGetPackageSearchResult Search(PackageSource packageSource, PackageIdentity packageIdentity)
+        private static NuGetPackageSearchResult Search(PackageSource packageSource, PackageIdentity packageIdentity)
         {
             var logger = new NuGetLogger();            
             List<Lazy<INuGetResourceProvider>> providers = new List<Lazy<INuGetResourceProvider>>();
@@ -48,8 +48,7 @@
             PackageMetadataResource packageMetadataResource = sourceRepository.GetResource<PackageMetadataResource>();
             var result =
                 packageMetadataResource.GetMetadataAsync(packageIdentity, logger, CancellationToken.None)
-                    .Result;
-
+                    .Result;            
             if (result != null)
             {
                 return new NuGetPackageSearchResult()

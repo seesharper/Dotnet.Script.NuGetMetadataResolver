@@ -8,6 +8,7 @@ namespace Dotnet.Script.NuGetMetadataResolver.Tests
     using NuGet.Packaging.Core;
     using NuGet.Versioning;
     using NuGetMetadataResolver;
+    using Shouldly;
     using Xunit;
     using Xunit.Abstractions;
 
@@ -21,17 +22,36 @@ namespace Dotnet.Script.NuGetMetadataResolver.Tests
 
 
         [Fact]
-        public void ShouldInstallPackage()
+        public void ShouldReturnResultForExistingPackage()
         {
-            //string directory = Path.GetDirectoryName(new Uri(typeof(NuGetMetadataReferenceResolver).GetTypeInfo().Assembly.CodeBase).LocalPath);
-                                   
-            //NuGetPackageInstaller installer = new NuGetPackageInstaller(new CommandRunner(), 
-            //    new NuGetPackageSearcher(
-            //        new NuGetPackageSourceProvider(Directory.GetCurrentDirectory())
-            //        , Path.Combine(directory, "packages"));
-
-            //installer.Install(new PackageIdentity("LightInject", NuGetVersion.Parse("5.0.0")));
+            var packageSearcher = CreatePackageSearcher();
+            var result = packageSearcher.Search(new PackageIdentity("LightInject", NuGetVersion.Parse("5.0.2")));
+            result.ShouldNotBeNull();
         }
+
+        [Fact]
+        public void ShouldReturnNullForNonExistingPackage()
+        {
+            var packageSearcher = CreatePackageSearcher();
+            var result = packageSearcher.Search(new PackageIdentity(Guid.NewGuid().ToString("N"), NuGetVersion.Parse("5.0.2")));
+            result.ShouldBeNull();
+        }
+
+        [Fact]
+        public void ShouldReturnNullExistingPackageWithInvalidVersion()
+        {
+            var packageSearcher = CreatePackageSearcher();
+            var result = packageSearcher.Search(new PackageIdentity("LightInject", NuGetVersion.Parse("0.0.1")));
+            result.ShouldBeNull();
+        }
+
         
+        private static INugetPackageSearcher CreatePackageSearcher()
+        {
+            string directory =
+                Path.GetDirectoryName(new Uri(typeof(NuGetMetadataReferenceResolver).GetTypeInfo().Assembly.CodeBase).LocalPath);
+            INugetPackageSearcher packageSearcher = new NuGetPackageSearcher(new NuGetPackageSourceProvider(directory));
+            return packageSearcher;
+        }
     }
 }
