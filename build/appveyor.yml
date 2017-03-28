@@ -1,8 +1,4 @@
 version: 1.0.{build}
-environment:
-  matrix:  
-  - platform: x64
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
 install:
 - cmd: cinst scriptcs
 build_script:
