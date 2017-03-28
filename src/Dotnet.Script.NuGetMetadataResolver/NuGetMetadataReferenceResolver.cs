@@ -75,7 +75,7 @@
             // Require Major, Minor and Revision before considering the reference to be valid.
             // This is to prevent premature installalation of packages during typing in the editor.
 
-            var regex = new Regex(@"nuget:(.+)\/(\d\.\d\.\d)", RegexOptions.IgnoreCase);
+            var regex = new Regex(@"nuget:(.+)\/(\d+\.\d+\.\d+)", RegexOptions.IgnoreCase);
             var match = regex.Match(nuGetReference);
             if (match.Success)
             {
