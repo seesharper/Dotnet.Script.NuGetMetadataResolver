@@ -8,13 +8,13 @@ build_script:
     scriptcs build.csx -debug
 test: off
 artifacts:
-- path: build/tmp/*.nupkg
-  name: NuGet Packages
+- path: build/tmp/**/*.nupkg
+  name: NuGetPackages
 deploy:
   provider: NuGet  
   api_key:
     secure: ynFcRQX0oim3DdR5Y8s4BtynS/NYRG059GvWGckqhpZGNZVvhvvn5UUWgsyPKLKm
   skip_symbols: false  
-  artifact: /.*\.nupkg/
+  artifact: NuGetPackages
   on:
     appveyor_repo_tag: true
