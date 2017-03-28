@@ -11,7 +11,6 @@
     using NuGet.Packaging.Core;
     using NuGet.Protocol;
 
-
     /// <summary>
     /// A <see cref="INuGetPackageInstaller"/> that installs packages using the NuGet command    
     /// </summary>
@@ -25,8 +24,8 @@
         private readonly INugetPackageSearcher nugetPackageSearcher;
         private readonly NuGetFramework framework;
         private readonly string rootFolder;
-        private readonly Action<LogEntry> logger;        
-        
+        private readonly Action<LogEntry> logger = LogFactory.GetLogger<NuGetPackageInstaller>();
+
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NuGetPackageInstaller"/> class.
@@ -41,14 +40,13 @@
             this.commandRunner = commandRunner;
             this.nugetPackageSearcher = nugetPackageSearcher;
             this.framework = framework;
-            this.rootFolder = rootFolder;            
-            logger = LogFactory.GetLogger<NuGetPackageInstaller>();
+            this.rootFolder = rootFolder;                        
         }
 
         /// <inheritdoc />
         public IEnumerable<string> Install(PackageIdentity packageIdentity)
         {
-            logger.Info($"Installing package {packageIdentity} in the context of {framework}.");
+            logger.Info($"Resolving package {packageIdentity} in the context of {framework}.");
             var defaultSettings = Settings.LoadDefaultSettings(rootFolder);
             NuGetPathContext nugetPathContext = NuGetPathContext.Create(defaultSettings);
             var globalPackagesFolder = nugetPathContext.UserPackageFolder;
@@ -65,6 +63,7 @@
 
                 InstallPackage(searchResult);
             }
+
 
             downloadResourceResult = GlobalPackagesFolderUtility.GetPackage(packageIdentity, globalPackagesFolder);
             var supportedFrameworks = downloadResourceResult.PackageReader.GetSupportedFrameworks();
@@ -85,6 +84,9 @@
 
         private void InstallPackage(NuGetPackageSearchResult packageSearchResult)
         {
+            //We simply install the package into a temporary folder 
+            //Nuget will also install the package into the global packages folder.
+
             var tempPath = Path.GetTempPath();            
             var installDirectory = Path.Combine(tempPath, Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(installDirectory);

@@ -4,7 +4,7 @@
     <TargetFramework>netstandard1.6</TargetFramework>
     <AssemblyName>Dotnet.Script.NuGetMetadataResolver</AssemblyName>
     <RootNamespace>Dotnet.Script.NuGetMetadataResolver</RootNamespace>
-    <Version>1.0.0-beta4</Version>
+    <Version>1.0.0-beta6</Version>
   </PropertyGroup>
 
   <ItemGroup>

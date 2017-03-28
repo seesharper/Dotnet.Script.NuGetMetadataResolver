@@ -18,7 +18,7 @@
     {
         private readonly MetadataReferenceResolver metadataReferenceResolver;        
         private readonly INuGetPackageInstaller nuGetPackageInstaller;                
-        private readonly Action<LogEntry> logger;
+        private readonly Action<LogEntry> logger = LogFactory.GetLogger<NuGetMetadataReferenceResolver>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NuGetMetadataReferenceResolver"/> class.
@@ -26,10 +26,10 @@
         /// <param name="metadataReferenceResolver">The target <see cref="MetadataReferenceResolver"/>.</param>        
         /// <param name="nuGetPackageInstaller">The <see cref="INuGetPackageInstaller"/> that is responsible for installing NuGet packages.</param>
         public NuGetMetadataReferenceResolver(MetadataReferenceResolver metadataReferenceResolver, INuGetPackageInstaller nuGetPackageInstaller)
-        {
-            logger = LogFactory.GetLogger<NuGetMetadataReferenceResolver>();            
+        {            
             this.metadataReferenceResolver = metadataReferenceResolver;            
-            this.nuGetPackageInstaller = nuGetPackageInstaller;            
+            this.nuGetPackageInstaller = nuGetPackageInstaller;      
+            
         }
 
         public static NuGetMetadataReferenceResolver Create(

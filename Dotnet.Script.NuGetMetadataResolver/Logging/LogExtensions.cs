@@ -42,9 +42,10 @@
         /// </summary>
         /// <param name="logAction">The log delegate.</param>
         /// <param name="message">The message to be logged.</param>
-        public static void Error(this Action<LogEntry> logAction, string message)
+        /// <param name="exception">The <see cref="Exception"/> causing the error.</param>
+        public static void Error(this Action<LogEntry> logAction, string message, Exception exception = null)
         {
-            logAction(new LogEntry(LogLevel.Error, message));
+            logAction(new LogEntry(LogLevel.Error, message, exception));
         }
     }
 }

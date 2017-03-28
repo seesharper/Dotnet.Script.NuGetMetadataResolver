@@ -17,7 +17,6 @@
     {
         private readonly INuGetPackageSourceProvider nuGetPackageSourceProvider;
 
-
         public NuGetPackageSearcher(INuGetPackageSourceProvider nuGetPackageSourceProvider)
         {
             this.nuGetPackageSourceProvider = nuGetPackageSourceProvider;            
@@ -25,8 +24,7 @@
 
         /// <inheritdoc />
         public NuGetPackageSearchResult Search(PackageIdentity packageIdentity)
-        {
-            
+        {            
             var sources = nuGetPackageSourceProvider.GetSources();
             foreach (var source in sources)
             {

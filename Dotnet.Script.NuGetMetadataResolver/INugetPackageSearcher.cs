@@ -1,8 +1,7 @@
 ﻿namespace Dotnet.Script.NuGetMetadataResolver
 {
     using NuGet.Packaging.Core;
-    using NuGet.Protocol.Core.Types;
-
+    
     /// <summary>
     /// Represents a class that is capable of searching for a given <see cref="PackageIdentity"/>.
     /// </summary>

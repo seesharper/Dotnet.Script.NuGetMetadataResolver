@@ -9,7 +9,7 @@
     /// </summary>
     public class CommandRunner : ICommandRunner
     {
-        private readonly Action<LogEntry> logger;
+        private readonly Action<LogEntry> logger = LogFactory.GetLogger<CommandRunner>();
        
         public void Execute(string commandPath, string arguments)
         {

@@ -5,6 +5,7 @@ namespace Dotnet.Script.NuGetMetadataResolver.Tests
     using System.Reflection;
     using Logging;
     using Microsoft.CodeAnalysis.NuGet.Tests;
+    using NuGet.Frameworks;
     using NuGet.Packaging.Core;
     using NuGet.Versioning;
     using NuGetMetadataResolver;
@@ -16,7 +17,7 @@ namespace Dotnet.Script.NuGetMetadataResolver.Tests
     {
         public NugetPackageInstallerTests(ITestOutputHelper testOutputHelper)
         {
-            LogFactory.Initialize(type => (entry => testOutputHelper.WriteLine($"{entry.Level} {entry.Message}")));            
+            LogFactory.Initialize(type => (entry => TestOutputHelper.Current.WriteLine($"{entry.Level} {entry.Message}")));            
             testOutputHelper.Capture();
         }
 
@@ -25,7 +26,7 @@ namespace Dotnet.Script.NuGetMetadataResolver.Tests
         public void ShouldReturnResultForExistingPackage()
         {
             var packageSearcher = CreatePackageSearcher();
-            var result = packageSearcher.Search(new PackageIdentity("LightInject", NuGetVersion.Parse("5.0.2")));
+            var result = packageSearcher.Search(new PackageIdentity("AutoMapper", NuGetVersion.Parse("6.0.2")));
             result.ShouldNotBeNull();
         }
 
@@ -45,6 +46,16 @@ namespace Dotnet.Script.NuGetMetadataResolver.Tests
             result.ShouldBeNull();
         }
 
+        [Fact]
+        public void ShouldInstallPackage()
+        {
+            string directory =
+               Path.GetDirectoryName(new Uri(typeof(NuGetMetadataReferenceResolver).GetTypeInfo().Assembly.CodeBase).LocalPath);
+
+            var packageInstaller = new NuGetPackageInstaller(new CommandRunner(),CreatePackageSearcher(), NugetFrameworkProvider.GetFrameworkNameFromAssembly(),directory);
+
+            packageInstaller.Install(new PackageIdentity("AutoMApper", NuGetVersion.Parse("6.0.2")));
+        }
         
         private static INugetPackageSearcher CreatePackageSearcher()
         {
