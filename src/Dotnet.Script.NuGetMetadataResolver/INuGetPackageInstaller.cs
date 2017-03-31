@@ -15,6 +15,6 @@
         /// </summary>
         /// <param name="packageIdentity">The <see cref="PackageIdentity"/> of the NuGet package to install.</param>
         /// <returns>A list of files representing assemblies to be added as metadata references.</returns>
-        IEnumerable<string> Install(PackageIdentity packageIdentity);
+        void Install(Dictionary<PackageIdentity, IEnumerable<string>> referencedPackages,PackageIdentity packageIdentity);
     }
 }

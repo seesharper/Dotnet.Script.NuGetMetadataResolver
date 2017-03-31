@@ -5,6 +5,7 @@
     using System.IO;
     using System.Linq;
     using Logging;
+    using Microsoft.Extensions.DependencyModel;
     using NuGet.Configuration;
     using NuGet.Frameworks;
     using NuGet.Packaging;
@@ -38,15 +39,21 @@
         public NuGetPackageInstaller(ICommandRunner commandRunner, INugetPackageSearcher nugetPackageSearcher, NuGetFramework framework,string rootFolder)
         {            
             this.commandRunner = commandRunner;
-            this.nugetPackageSearcher = nugetPackageSearcher;
-            this.framework = framework;
+            this.nugetPackageSearcher = nugetPackageSearcher;            
+            this.framework = new FallbackFramework(framework, new NuGetFramework[] { NuGetFramework.Parse("dotnet") });
             this.rootFolder = rootFolder;                        
         }
 
         /// <inheritdoc />
-        public IEnumerable<string> Install(PackageIdentity packageIdentity)
+        public void Install(Dictionary<PackageIdentity, IEnumerable<string>> referencedPackages, PackageIdentity packageIdentity)
         {
             logger.Info($"Resolving package {packageIdentity} in the context of {framework}.");
+            if (referencedPackages.ContainsKey(packageIdentity))
+            {
+                logger.Info($"Package {packageIdentity} already installed and referenced");
+                return;
+            }
+
             var defaultSettings = Settings.LoadDefaultSettings(rootFolder);
             NuGetPathContext nugetPathContext = NuGetPathContext.Create(defaultSettings);
             var globalPackagesFolder = nugetPathContext.UserPackageFolder;
@@ -56,30 +63,34 @@
                 logger.Info($"Package {packageIdentity} not found in the global packages folder {globalPackagesFolder}");
                 logger.Info($"Installing package {packageIdentity.Id}, Version {packageIdentity.Version}");
                 var searchResult = nugetPackageSearcher.Search(packageIdentity);
+                
                 if (searchResult == null)
-                {
-                    return Enumerable.Empty<string>();
+                {                    
+                    return;
                 }
 
                 InstallPackage(searchResult);
             }
-
+            
 
             downloadResourceResult = GlobalPackagesFolderUtility.GetPackage(packageIdentity, globalPackagesFolder);
             var supportedFrameworks = downloadResourceResult.PackageReader.GetSupportedFrameworks();
             var packageReader = downloadResourceResult.PackageReader;
-            var versionFolderPathResolver = new VersionFolderPathResolver(globalPackagesFolder);
+            var versionFolderPathResolver = new VersionFolderPathResolver(globalPackagesFolder);           
             var installPath = versionFolderPathResolver.GetInstallPath(packageIdentity.Id, packageIdentity.Version);
-                        
+            
             FrameworkReducer reducer = new FrameworkReducer();
             var nearest = reducer.GetNearest(framework, supportedFrameworks);
 
-            // NOTE: We don't look for dependencies and try to install them yet.
-            // Dependencies to other packages needs their own "#r nuget:packagename/version" reference in the script file.
-
+            if (nearest == null)
+            {                                
+                referencedPackages.Add(packageIdentity, Enumerable.Empty<string>());
+                return;
+            }
+             
             var frameworkSpecificGroup = packageReader.GetLibItems().SingleOrDefault(i => i.TargetFramework == nearest);
             var files = frameworkSpecificGroup.Items.Select(i => i.ToLower()).Where(i => i.EndsWith("dll") && !i.EndsWith("resources.dll"));
-            return files.Select(f => Path.GetFullPath(Path.Combine(installPath, f)));
+            referencedPackages.Add(packageIdentity, files.Select(f => Path.GetFullPath(Path.Combine(installPath, f))));
         }
 
         private void InstallPackage(NuGetPackageSearchResult packageSearchResult)

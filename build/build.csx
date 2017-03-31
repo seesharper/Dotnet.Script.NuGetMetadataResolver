@@ -1,4 +1,4 @@
-
+﻿
 #load "common.csx"
 
 string pathToBuildDirectory = @"tmp/";

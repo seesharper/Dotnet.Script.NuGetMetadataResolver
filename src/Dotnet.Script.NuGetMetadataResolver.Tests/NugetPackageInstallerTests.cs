@@ -1,7 +1,9 @@
 namespace Dotnet.Script.NuGetMetadataResolver.Tests
 {
     using System;
+    using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Reflection;
     using Logging;
     using Microsoft.CodeAnalysis.NuGet.Tests;
@@ -54,9 +56,26 @@ namespace Dotnet.Script.NuGetMetadataResolver.Tests
 
             var packageInstaller = new NuGetPackageInstaller(new CommandRunner(),CreatePackageSearcher(), NugetFrameworkProvider.GetFrameworkNameFromAssembly(),directory);
 
-            packageInstaller.Install(new PackageIdentity("AutoMApper", NuGetVersion.Parse("6.0.2")));
+            Dictionary<PackageIdentity, IEnumerable<string>> referencedPackages = new Dictionary<PackageIdentity, IEnumerable<string>>();
+            packageInstaller.Install(referencedPackages,new PackageIdentity("System.ComponentModel.TypeConverter", NuGetVersion.Parse("4.0.0")));
         }
-        
+
+        [Fact]
+        public void ShouldFallBackToDotNetFolder()
+        {
+            string directory =
+               Path.GetDirectoryName(new Uri(typeof(NuGetMetadataReferenceResolver).GetTypeInfo().Assembly.CodeBase).LocalPath);
+            
+            var packageInstaller = new NuGetPackageInstaller(new CommandRunner(), CreatePackageSearcher(), NugetFrameworkProvider.GetFrameworkNameFromAssembly(), directory);
+
+            Dictionary<PackageIdentity, IEnumerable<string>> referencedPackages = new Dictionary<PackageIdentity, IEnumerable<string>>();
+            packageInstaller.Install(referencedPackages, new PackageIdentity("System.ComponentModel.TypeConverter", NuGetVersion.Parse("4.0.0")));
+
+            referencedPackages.First().Value.ShouldNotBeEmpty();
+
+        }
+
+
         private static INugetPackageSearcher CreatePackageSearcher()
         {
             string directory =

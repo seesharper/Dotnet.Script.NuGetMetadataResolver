@@ -1,6 +1,7 @@
 ﻿namespace Dotnet.Script.NuGetMetadataResolver
 {
     using System;
+    using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Linq;
     using System.Text.RegularExpressions;
@@ -54,6 +55,14 @@
             return metadataReferenceResolver.GetHashCode();                     
         }
 
+        public override bool ResolveMissingAssemblies => metadataReferenceResolver.ResolveMissingAssemblies;
+
+        public override PortableExecutableReference ResolveMissingAssembly(MetadataReference definition, AssemblyIdentity referenceIdentity)
+        {
+            return metadataReferenceResolver.ResolveMissingAssembly(definition, referenceIdentity);
+        }
+
+
         public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)
         {
             if (reference.StartsWith("nuget", StringComparison.OrdinalIgnoreCase))
@@ -62,7 +71,9 @@
                 if (packageIdentity != null)
                 {
                     logger.Info($"Found Nuget reference {reference}");
-                    var metadataReferenceFiles = nuGetPackageInstaller.Install(packageIdentity);                    
+                    Dictionary<PackageIdentity, IEnumerable<string>> referencedPackages = new Dictionary<PackageIdentity, IEnumerable<string>>();
+                    nuGetPackageInstaller.Install(referencedPackages, packageIdentity);
+                    var metadataReferenceFiles = referencedPackages.SelectMany(rp => rp.Value).Distinct();
                     return metadataReferenceFiles.Select(mrf => MetadataReference.CreateFromFile(mrf)).ToImmutableArray();                    
                 }                
             }

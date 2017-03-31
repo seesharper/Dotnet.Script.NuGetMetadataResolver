@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Xml.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.Win32;
