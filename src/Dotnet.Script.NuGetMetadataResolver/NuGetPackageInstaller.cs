@@ -4,8 +4,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using Logging;
-    using Microsoft.Extensions.DependencyModel;
+    using Logging;    
     using NuGet.Configuration;
     using NuGet.Frameworks;
     using NuGet.Packaging;
