@@ -4,9 +4,9 @@ namespace Dotnet.Script.NuGetMetadataResolver.Tests
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Reflection;
-    using Logging;
+    using System.Reflection;    
     using Microsoft.CodeAnalysis.NuGet.Tests;
+    using Microsoft.Extensions.Logging;
     using NuGet.Frameworks;
     using NuGet.Packaging.Core;
     using NuGet.Versioning;
@@ -18,8 +18,7 @@ namespace Dotnet.Script.NuGetMetadataResolver.Tests
     public class NugetPackageInstallerTests
     {
         public NugetPackageInstallerTests(ITestOutputHelper testOutputHelper)
-        {
-            LogFactory.Initialize(type => (entry => TestOutputHelper.Current.WriteLine($"{entry.Level} {entry.Message}")));            
+        {            
             testOutputHelper.Capture();
         }
 
@@ -54,7 +53,7 @@ namespace Dotnet.Script.NuGetMetadataResolver.Tests
             string directory =
                Path.GetDirectoryName(new Uri(typeof(NuGetMetadataReferenceResolver).GetTypeInfo().Assembly.CodeBase).LocalPath);
 
-            var packageInstaller = new NuGetPackageInstaller(new CommandRunner(),CreatePackageSearcher(), NugetFrameworkProvider.GetFrameworkNameFromAssembly(),directory);
+            var packageInstaller = new NuGetPackageInstaller(new CommandRunner(CreateLoggerFactory()),CreatePackageSearcher(), NugetFrameworkProvider.GetFrameworkNameFromAssembly(),CreateLoggerFactory(),directory);
 
             Dictionary<PackageIdentity, IEnumerable<string>> referencedPackages = new Dictionary<PackageIdentity, IEnumerable<string>>();
             packageInstaller.Install(referencedPackages,new PackageIdentity("System.ComponentModel.TypeConverter", NuGetVersion.Parse("4.0.0")));
@@ -66,7 +65,7 @@ namespace Dotnet.Script.NuGetMetadataResolver.Tests
             string directory =
                Path.GetDirectoryName(new Uri(typeof(NuGetMetadataReferenceResolver).GetTypeInfo().Assembly.CodeBase).LocalPath);
             
-            var packageInstaller = new NuGetPackageInstaller(new CommandRunner(), CreatePackageSearcher(), NugetFrameworkProvider.GetFrameworkNameFromAssembly(), directory);
+            var packageInstaller = new NuGetPackageInstaller(new CommandRunner(CreateLoggerFactory()), CreatePackageSearcher(), NugetFrameworkProvider.GetFrameworkNameFromAssembly(),CreateLoggerFactory(), directory);
 
             Dictionary<PackageIdentity, IEnumerable<string>> referencedPackages = new Dictionary<PackageIdentity, IEnumerable<string>>();
             packageInstaller.Install(referencedPackages, new PackageIdentity("System.ComponentModel.TypeConverter", NuGetVersion.Parse("4.0.0")));
@@ -80,8 +79,13 @@ namespace Dotnet.Script.NuGetMetadataResolver.Tests
         {
             string directory =
                 Path.GetDirectoryName(new Uri(typeof(NuGetMetadataReferenceResolver).GetTypeInfo().Assembly.CodeBase).LocalPath);
-            INugetPackageSearcher packageSearcher = new NuGetPackageSearcher(new NuGetPackageSourceProvider(directory));
+            INugetPackageSearcher packageSearcher = new NuGetPackageSearcher(new NuGetPackageSourceProvider(directory, CreateLoggerFactory()), CreateLoggerFactory());
             return packageSearcher;
+        }
+
+        private static ILoggerFactory CreateLoggerFactory()
+        {
+            return new TestOutPutLoggerFactory();
         }
     }
 }

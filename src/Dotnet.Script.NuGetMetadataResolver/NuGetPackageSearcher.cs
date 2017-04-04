@@ -2,8 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Threading;
-    using Logging;    
+    using System.Threading;    
+    using Microsoft.Extensions.Logging;
     using NuGet.Configuration;
     using NuGet.Packaging.Core;
     using NuGet.Protocol;
@@ -16,10 +16,12 @@
     public class NuGetPackageSearcher : INugetPackageSearcher
     {
         private readonly INuGetPackageSourceProvider nuGetPackageSourceProvider;
+        private readonly NuGet.Common.ILogger nugetLogger;
 
-        public NuGetPackageSearcher(INuGetPackageSourceProvider nuGetPackageSourceProvider)
+        public NuGetPackageSearcher(INuGetPackageSourceProvider nuGetPackageSourceProvider, ILoggerFactory loggerFactory)
         {
-            this.nuGetPackageSourceProvider = nuGetPackageSourceProvider;            
+            this.nuGetPackageSourceProvider = nuGetPackageSourceProvider;
+            nugetLogger = new NuGetLogger(loggerFactory.CreateLogger<NuGetLogger>());
         }
 
         /// <inheritdoc />
@@ -37,15 +39,14 @@
             return null;
         }
 
-        private static NuGetPackageSearchResult Search(PackageSource packageSource, PackageIdentity packageIdentity)
-        {
-            var logger = new NuGetLogger();            
+        private NuGetPackageSearchResult Search(PackageSource packageSource, PackageIdentity packageIdentity)
+        {            
             List<Lazy<INuGetResourceProvider>> providers = new List<Lazy<INuGetResourceProvider>>();
             providers.AddRange(Repository.Provider.GetCoreV3());            
             SourceRepository sourceRepository = new SourceRepository(packageSource, providers);
             PackageMetadataResource packageMetadataResource = sourceRepository.GetResource<PackageMetadataResource>();
             var result =
-                packageMetadataResource.GetMetadataAsync(packageIdentity, logger, CancellationToken.None)
+                packageMetadataResource.GetMetadataAsync(packageIdentity, nugetLogger, CancellationToken.None)
                     .Result;            
             if (result != null)
             {
@@ -60,51 +61,52 @@
 
         private class NuGetLogger : NuGet.Common.ILogger
         {
-            private readonly Action<LogEntry> logger;
+            private readonly ILogger logger;
 
-            public NuGetLogger()
+
+            public NuGetLogger(ILogger logger)
             {
-                logger = LogFactory.GetLogger<NuGetLogger>();
+                this.logger = logger;                
             }
 
             public void LogDebug(string data)
             {
-                logger.Debug(data);
+                logger.LogDebug(data);
             }
 
             public void LogError(string data)
             {
-                logger.Error(data);
+                logger.LogError(data);
             }
 
             public void LogErrorSummary(string data)
             {
-                logger.Error(data);
+                logger.LogError(data);
             }
 
             public void LogInformation(string data)
             {
-                logger.Info(data);
+                logger.LogInformation(data);
             }
 
             public void LogInformationSummary(string data)
             {
-                logger.Info(data);
+                logger.LogInformation(data);
             }
 
             public void LogMinimal(string data)
             {
-                logger.Info(data);
+                logger.LogInformation(data);
             }
 
             public void LogVerbose(string data)
             {
-                logger.Info(data);
+                logger.LogInformation(data);
             }
 
             public void LogWarning(string data)
             {
-                logger.Warning(data);
+                logger.LogWarning(data);
             }
         }
     }

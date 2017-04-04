@@ -3,8 +3,8 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
-    using Logging;    
+    using System.Linq;    
+    using Microsoft.Extensions.Logging;
     using NuGet.Configuration;
     using NuGet.Frameworks;
     using NuGet.Packaging;
@@ -24,7 +24,7 @@
         private readonly INugetPackageSearcher nugetPackageSearcher;
         private readonly NuGetFramework framework;
         private readonly string rootFolder;
-        private readonly Action<LogEntry> logger = LogFactory.GetLogger<NuGetPackageInstaller>();
+        private readonly ILogger logger;
 
 
         /// <summary>
@@ -35,21 +35,22 @@
         /// <param name="nugetPackageSearcher">The <see cref="INugetPackageSearcher"/> that is responsible for searching for packages.</param>
         /// <param name="framework">The <see cref="NuGetFramework"/> that indicates the context for which to install packages.</param>
         /// <param name="rootFolder">The absolute path to script root folder</param>
-        public NuGetPackageInstaller(ICommandRunner commandRunner, INugetPackageSearcher nugetPackageSearcher, NuGetFramework framework,string rootFolder)
+        public NuGetPackageInstaller(ICommandRunner commandRunner, INugetPackageSearcher nugetPackageSearcher, NuGetFramework framework,ILoggerFactory loggerFactory, string rootFolder)
         {            
             this.commandRunner = commandRunner;
             this.nugetPackageSearcher = nugetPackageSearcher;            
             this.framework = new FallbackFramework(framework, new NuGetFramework[] { NuGetFramework.Parse("dotnet") });
-            this.rootFolder = rootFolder;                        
+            this.rootFolder = rootFolder;
+            this.logger = loggerFactory.CreateLogger<NuGetPackageInstaller>();
         }
 
         /// <inheritdoc />
         public void Install(Dictionary<PackageIdentity, IEnumerable<string>> referencedPackages, PackageIdentity packageIdentity)
         {
-            logger.Info($"Resolving package {packageIdentity} in the context of {framework}.");
+            logger.LogInformation($"Resolving package {packageIdentity} in the context of {framework}.");
             if (referencedPackages.ContainsKey(packageIdentity))
             {
-                logger.Info($"Package {packageIdentity} already installed and referenced");
+                logger.LogInformation($"Package {packageIdentity} already installed and referenced");
                 return;
             }
 
@@ -59,8 +60,8 @@
             var downloadResourceResult = GlobalPackagesFolderUtility.GetPackage(packageIdentity, globalPackagesFolder);
             if (downloadResourceResult == null)
             {
-                logger.Info($"Package {packageIdentity} not found in the global packages folder {globalPackagesFolder}");
-                logger.Info($"Installing package {packageIdentity.Id}, Version {packageIdentity.Version}");
+                logger.LogInformation($"Package {packageIdentity} not found in the global packages folder {globalPackagesFolder}");
+                logger.LogInformation($"Installing package {packageIdentity.Id}, Version {packageIdentity.Version}");
                 var searchResult = nugetPackageSearcher.Search(packageIdentity);
                 
                 if (searchResult == null)

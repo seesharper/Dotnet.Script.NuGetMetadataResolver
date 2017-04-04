@@ -4,9 +4,9 @@
     using System.Collections.Generic;
     using System.Collections.Immutable;
     using System.Linq;
-    using System.Text.RegularExpressions;
-    using Logging;
+    using System.Text.RegularExpressions;    
     using Microsoft.CodeAnalysis;
+    using Microsoft.Extensions.Logging;
     using NuGet.Frameworks;
     using NuGet.Packaging.Core;
     using NuGet.Versioning;
@@ -18,29 +18,30 @@
     public class NuGetMetadataReferenceResolver : MetadataReferenceResolver
     {
         private readonly MetadataReferenceResolver metadataReferenceResolver;        
-        private readonly INuGetPackageInstaller nuGetPackageInstaller;                
-        private readonly Action<LogEntry> logger = LogFactory.GetLogger<NuGetMetadataReferenceResolver>();
+        private readonly INuGetPackageInstaller nuGetPackageInstaller;        
+        private readonly ILogger logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NuGetMetadataReferenceResolver"/> class.
         /// </summary>
         /// <param name="metadataReferenceResolver">The target <see cref="MetadataReferenceResolver"/>.</param>        
         /// <param name="nuGetPackageInstaller">The <see cref="INuGetPackageInstaller"/> that is responsible for installing NuGet packages.</param>
-        public NuGetMetadataReferenceResolver(MetadataReferenceResolver metadataReferenceResolver, INuGetPackageInstaller nuGetPackageInstaller)
+        public NuGetMetadataReferenceResolver(MetadataReferenceResolver metadataReferenceResolver, INuGetPackageInstaller nuGetPackageInstaller, ILoggerFactory loggerFactory)
         {            
             this.metadataReferenceResolver = metadataReferenceResolver;            
-            this.nuGetPackageInstaller = nuGetPackageInstaller;      
-            
+            this.nuGetPackageInstaller = nuGetPackageInstaller;            
+            this.logger = loggerFactory.CreateLogger<NuGetMetadataReferenceResolver>();
         }
 
         public static NuGetMetadataReferenceResolver Create(
             MetadataReferenceResolver metadataReferenceResolver,
             NuGetFramework framework,
+            ILoggerFactory loggerFactory,
             string rootFolder)
         {
             return new NuGetMetadataReferenceResolver(metadataReferenceResolver,
-                new NuGetPackageInstaller(new CommandRunner(),
-                    new NuGetPackageSearcher(new NuGetPackageSourceProvider(rootFolder)), framework ,rootFolder));
+                new NuGetPackageInstaller(new CommandRunner(loggerFactory),
+                    new NuGetPackageSearcher(new NuGetPackageSourceProvider(rootFolder, loggerFactory),loggerFactory), framework,loggerFactory,rootFolder), loggerFactory);
         }
 
         /// <inheritdoc />
@@ -70,7 +71,7 @@
                 var packageIdentity = ParseNugetReference(reference);
                 if (packageIdentity != null)
                 {
-                    logger.Info($"Found Nuget reference {reference}");
+                    logger.LogInformation($"Found Nuget reference {reference}");
                     Dictionary<PackageIdentity, IEnumerable<string>> referencedPackages = new Dictionary<PackageIdentity, IEnumerable<string>>();
                     nuGetPackageInstaller.Install(referencedPackages, packageIdentity);
                     var metadataReferenceFiles = referencedPackages.SelectMany(rp => rp.Value).Distinct();

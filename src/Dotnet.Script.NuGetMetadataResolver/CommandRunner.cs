@@ -1,19 +1,24 @@
 ﻿namespace Dotnet.Script.NuGetMetadataResolver
 {
     using System;
-    using System.Diagnostics;
-    using Logging;    
+    using System.Diagnostics;    
+    using Microsoft.Extensions.Logging;
 
     /// <summary>
     /// A class that is capable of running a command.
     /// </summary>
     public class CommandRunner : ICommandRunner
     {
-        private readonly Action<LogEntry> logger = LogFactory.GetLogger<CommandRunner>();
-       
+        private readonly ILogger logger;
+
+        public CommandRunner(ILoggerFactory loggerFactory)
+        {
+            logger = loggerFactory.CreateLogger<CommandRunner>();
+        }
+
         public void Execute(string commandPath, string arguments)
         {
-            logger.Info($"Executing {commandPath} {arguments}");
+            logger.LogInformation($"Executing {commandPath} {arguments}");
             var startInformation = CreateProcessStartInfo(commandPath, arguments);
             var process = CreateProcess(startInformation);            
             RunAndWait(process);
@@ -39,8 +44,8 @@
         {
             var process = new Process();
             process.StartInfo = startInformation;
-            process.ErrorDataReceived += (s, a) => logger.Error(a.Data);
-            process.OutputDataReceived += (s, a) => logger.Info(a.Data);
+            process.ErrorDataReceived += (s, a) => logger.LogError(a.Data);
+            process.OutputDataReceived += (s, a) => logger.LogInformation(a.Data);
             return process;
         }
 
