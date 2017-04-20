@@ -1,47 +1,25 @@
 ﻿namespace Dotnet.Script.NuGetMetadataResolver
 {
     using System;
-    using System.Collections.Generic;
     using System.Collections.Immutable;
-    using System.Linq;
-    using System.Text.RegularExpressions;    
+    using System.Reflection;
     using Microsoft.CodeAnalysis;
-    using Microsoft.Extensions.Logging;
-    using NuGet.Frameworks;
-    using NuGet.Packaging.Core;
-    using NuGet.Versioning;
 
     /// <summary>
-    /// A <see cref="MetadataReferenceResolver"/> decorator that is capable of resolving 
-    /// #r directives that references NuGet packages (#r nuget:PackageId/Version)
+    /// A <see cref="MetadataReferenceResolver"/> decorator that handles
+    /// references to NuGet packages in scripts.  
     /// </summary>
     public class NuGetMetadataReferenceResolver : MetadataReferenceResolver
     {
-        private readonly MetadataReferenceResolver metadataReferenceResolver;        
-        private readonly INuGetPackageInstaller nuGetPackageInstaller;        
-        private readonly ILogger logger;
-
+        private readonly MetadataReferenceResolver metadataReferenceResolver;       
+              
         /// <summary>
         /// Initializes a new instance of the <see cref="NuGetMetadataReferenceResolver"/> class.
         /// </summary>
-        /// <param name="metadataReferenceResolver">The target <see cref="MetadataReferenceResolver"/>.</param>        
-        /// <param name="nuGetPackageInstaller">The <see cref="INuGetPackageInstaller"/> that is responsible for installing NuGet packages.</param>
-        public NuGetMetadataReferenceResolver(MetadataReferenceResolver metadataReferenceResolver, INuGetPackageInstaller nuGetPackageInstaller, ILoggerFactory loggerFactory)
-        {            
-            this.metadataReferenceResolver = metadataReferenceResolver;            
-            this.nuGetPackageInstaller = nuGetPackageInstaller;            
-            this.logger = loggerFactory.CreateLogger<NuGetMetadataReferenceResolver>();
-        }
-
-        public static NuGetMetadataReferenceResolver Create(
-            MetadataReferenceResolver metadataReferenceResolver,
-            NuGetFramework framework,
-            ILoggerFactory loggerFactory,
-            string rootFolder)
+        /// <param name="metadataReferenceResolver">The target <see cref="MetadataReferenceResolver"/>.</param>                
+        public NuGetMetadataReferenceResolver(MetadataReferenceResolver metadataReferenceResolver)
         {
-            return new NuGetMetadataReferenceResolver(metadataReferenceResolver,
-                new NuGetPackageInstaller(new CommandRunner(loggerFactory),
-                    new NuGetPackageSearcher(new NuGetPackageSourceProvider(rootFolder, loggerFactory),loggerFactory), framework,loggerFactory,rootFolder), loggerFactory);
+            this.metadataReferenceResolver = metadataReferenceResolver;            
         }
 
         /// <inheritdoc />
@@ -53,7 +31,7 @@
         /// <inheritdoc />
         public override int GetHashCode()
         {
-            return metadataReferenceResolver.GetHashCode();                     
+            return metadataReferenceResolver.GetHashCode();
         }
 
         public override bool ResolveMissingAssemblies => metadataReferenceResolver.ResolveMissingAssemblies;
@@ -63,44 +41,18 @@
             return metadataReferenceResolver.ResolveMissingAssembly(definition, referenceIdentity);
         }
 
-
         public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)
         {
             if (reference.StartsWith("nuget", StringComparison.OrdinalIgnoreCase))
             {
-                var packageIdentity = ParseNugetReference(reference);
-                if (packageIdentity != null)
-                {
-                    logger.LogInformation($"Found Nuget reference {reference}");
-                    Dictionary<PackageIdentity, IEnumerable<string>> referencedPackages = new Dictionary<PackageIdentity, IEnumerable<string>>();
-                    nuGetPackageInstaller.Install(referencedPackages, packageIdentity);
-                    var metadataReferenceFiles = referencedPackages.SelectMany(rp => rp.Value).Distinct();
-                    return metadataReferenceFiles.Select(mrf => MetadataReference.CreateFromFile(mrf)).ToImmutableArray();                    
-                }                
+                // HACK We need to return something here to "mark" the reference as resolved. 
+                return ImmutableArray<PortableExecutableReference>.Empty.Add(
+                    MetadataReference.CreateFromFile(typeof(string).GetTypeInfo().Assembly.Location));
             }
-
             return metadataReferenceResolver.ResolveReference(reference, baseFilePath, properties);
         }
 
-        private static PackageIdentity ParseNugetReference(string nuGetReference)
-        {
-            // Require Major, Minor and Revision before considering the reference to be valid.
-            // This is to prevent premature installalation of packages during typing in the editor.
+       
 
-            var regex = new Regex(@"nuget:(.+)\/(\d+\.\d+\.\d+)", RegexOptions.IgnoreCase);
-            var match = regex.Match(nuGetReference);
-            if (match.Success)
-            {
-                var packageName = match.Groups[1].Value;
-                var version = match.Groups[2].Value;
-                NuGetVersion nuGetVersion;
-                NuGetVersion.TryParseStrict(version, out nuGetVersion);
-                if (nuGetVersion != null)
-                {
-                    return new PackageIdentity(packageName, nuGetVersion);
-                }
-            }
-            return null;
-        }
     }
 }
