@@ -93,6 +93,14 @@ If we specify the target framework using the #! directive, the default target fr
 
 For OmniSharp this means that everything will continue to work as before in a non-breaking manner, but we now have an opt-in approach for referencing NuGet packages and optionally specifying the target framework for which to resolve metadata references.
 
+When the project.json file is generated it will be saved to a temporary folder like this
+
+```shell
+C:\Users\***\AppData\Local\Temp\scripts\scriptdemo\project.json
+```
+
+We then perform a NuGet restore on this file causing dependencies to be resolved and a project.lock.json file to be written to the same location. 
+
 
 
 
