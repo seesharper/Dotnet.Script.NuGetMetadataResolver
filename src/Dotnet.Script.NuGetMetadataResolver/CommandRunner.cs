@@ -14,11 +14,16 @@
         private readonly StringBuilder lastStandardErrorOutput = new StringBuilder();
         private readonly StringBuilder lastProcessOutput = new StringBuilder();
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CommandRunner"/> class.
+        /// </summary>
+        /// <param name="loggerFactory">The <see cref="ILoggerFactory"/> used to create an <see cref="ILogger"/> instance.</param>
         public CommandRunner(ILoggerFactory loggerFactory)
         {
             logger = loggerFactory.CreateLogger<CommandRunner>();
         }
 
+        /// <inheritdoc />
         public void Execute(string commandPath, string arguments)
         {
             lastStandardErrorOutput.Clear();

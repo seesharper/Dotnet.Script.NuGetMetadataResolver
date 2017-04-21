@@ -5,7 +5,6 @@ namespace Dotnet.Script.NuGetMetadataResolver.Tests
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using csx;
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.NuGet.Tests;
     using Microsoft.Extensions.Logging;

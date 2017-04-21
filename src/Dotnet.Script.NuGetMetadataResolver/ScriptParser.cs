@@ -6,9 +6,18 @@
     using System.Text.RegularExpressions;
     using Microsoft.Extensions.Logging;
 
+    /// <summary>
+    /// A class that is capable of parsing a set of script files 
+    /// and return information about NuGet references and the target framework.
+    /// </summary>
     public class ScriptParser : IScriptParser
     {
         private readonly ILogger logger;
+
+        /// <summary>
+        /// Initializes a new insstance of the <see cref="ScriptParser"/> class.
+        /// </summary>
+        /// <param name="loggerFactory">The <see cref="ILoggerFactory"/> used to create an <see cref="ILogger"/> instance.</param>
         public ScriptParser(ILoggerFactory loggerFactory)
         {
             logger = loggerFactory.CreateLogger<ScriptParser>();
@@ -43,7 +52,7 @@
 
         private IEnumerable<PackageReference> ReadPackageReferences(string fileContent)
         {
-            const string pattern = @"#r\s*""nuget:\s*(.+)\s*,\s*(\d+\.\d+\.\d+)""";
+            const string pattern = @"^\s*#r\s*""nuget:\s*(.+)\s*,\s*(.*)""";
             var matches = Regex.Matches(fileContent, pattern, RegexOptions.IgnoreCase);
             
             foreach (var match in matches.Cast<Match>())
@@ -57,7 +66,7 @@
 
         private string ReadTargetFramework(string fileContent)
         {
-            const string pattern = @"#!\s*""(.*)""";
+            const string pattern = @"^\s*#!\s*""(.*)""";
             var match = Regex.Match(fileContent, pattern);
             if (match.Success)
             {
@@ -74,12 +83,7 @@
                 {
                     return reader.ReadToEnd();
                 }
-            }
-
-            
+            }            
         }
-
-    }
-
-    
+    }    
 }
