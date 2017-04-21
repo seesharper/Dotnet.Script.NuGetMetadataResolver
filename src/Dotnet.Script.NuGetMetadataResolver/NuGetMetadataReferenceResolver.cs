@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Immutable;
+    using System.Linq;
     using System.Reflection;
     using Microsoft.CodeAnalysis;
 
@@ -44,10 +45,10 @@
         public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)
         {
             if (reference.StartsWith("nuget", StringComparison.OrdinalIgnoreCase))
-            {
+            {                               
                 // HACK We need to return something here to "mark" the reference as resolved. 
                 return ImmutableArray<PortableExecutableReference>.Empty.Add(
-                    MetadataReference.CreateFromFile(typeof(string).GetTypeInfo().Assembly.Location));
+                    MetadataReference.CreateFromFile(typeof(NuGetMetadataReferenceResolver).GetTypeInfo().Assembly.Location));
             }
             return metadataReferenceResolver.ResolveReference(reference, baseFilePath, properties);
         }
