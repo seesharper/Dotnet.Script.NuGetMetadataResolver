@@ -24,7 +24,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="foo.csx">
+    <None Update="ScriptWithMultiplePackages.csx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="ScriptWithFrameworkReference.csx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="ScriptWithOnePackage.csx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

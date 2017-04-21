@@ -23,6 +23,7 @@
             logger = loggerFactory.CreateLogger<ScriptParser>();
         }
 
+        /// <inheritdoc />
         public ParseResult ParseFrom(IEnumerable<string> csxFiles)
         {
             HashSet<PackageReference> allPackageReferences = new HashSet<PackageReference>();                        
@@ -53,7 +54,7 @@
         private IEnumerable<PackageReference> ReadPackageReferences(string fileContent)
         {
             const string pattern = @"^\s*#r\s*""nuget:\s*(.+)\s*,\s*(.*)""";
-            var matches = Regex.Matches(fileContent, pattern, RegexOptions.IgnoreCase);
+            var matches = Regex.Matches(fileContent, pattern, RegexOptions.IgnoreCase | RegexOptions.Multiline);
             
             foreach (var match in matches.Cast<Match>())
             {
