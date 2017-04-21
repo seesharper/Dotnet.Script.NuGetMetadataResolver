@@ -36,7 +36,7 @@ I do however agree that we should align with F# and adopt the same syntax
 
 ~~The resolver uses the *PackageSourceProvider* (also provided by the NuGet API) to figure out the feeds to be used. This for instance means that we support a local NuGet.Config.~~ 
 
-### How does it works - take 2
+### How does it work - take 2
 
 The purpose of this library is to resolve NuGet metadata references in C# script files (csx files).
 
