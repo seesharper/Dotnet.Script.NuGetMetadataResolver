@@ -38,6 +38,6 @@ private void InitializBuildDirectories()
 private void InitializeNugetBuildDirectory(string frameworkMoniker)
 {	
     CreateDirectory(pathToBuildDirectory);
-	RoboCopy("../src", pathToBuildDirectory, "/e /XD bin obj .vs NuGet TestResults packages /XF project.lock.json");											  
+	RoboCopy("../src", pathToBuildDirectory, "/e /XD bin obj .vs TestResults packages /XF project.lock.json");											  
 }
  

@@ -50,12 +50,12 @@ namespace Dotnet.Script.NuGetMetadataResolver.Tests
             result.TargetFramework.ShouldBe("netcoreapp1.0");
         }
 
-        [Fact]
-        public void ShouldExtractNuGet()
-        {
-            ScriptProjectProvider p = ScriptProjectProvider.Create(CreateLoggerFactory());
-            p.CreateProject(Path.GetDirectoryName(new Uri(typeof(ScriptParserTests).GetTypeInfo().Assembly.CodeBase).LocalPath));
-        }
+        //[Fact]
+        //public void ShouldExtractNuGet()
+        //{
+        //    ScriptProjectProvider p = ScriptProjectProvider.Create(CreateLoggerFactory());
+        //    p.CreateProject(Path.GetDirectoryName(new Uri(typeof(ScriptParserTests).GetTypeInfo().Assembly.CodeBase).LocalPath));
+        //}
 
 
         private static ILoggerFactory CreateLoggerFactory()
