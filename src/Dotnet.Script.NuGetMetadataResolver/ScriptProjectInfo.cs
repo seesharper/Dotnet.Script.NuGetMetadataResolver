@@ -25,6 +25,6 @@
         /// <summary>
         /// Gets the target framework.
         /// </summary>
-        public string TargetFramework { get; }
+        public string TargetFramework { get; }        
     }
 }

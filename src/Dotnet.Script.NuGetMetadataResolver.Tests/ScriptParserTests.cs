@@ -1,6 +1,9 @@
 namespace Dotnet.Script.NuGetMetadataResolver.Tests
 {
+    using System;
+    using System.IO;
     using System.Linq;
+    using System.Reflection;
     using Microsoft.CodeAnalysis.NuGet.Tests;
     using Microsoft.Extensions.Logging;
 
@@ -45,8 +48,16 @@ namespace Dotnet.Script.NuGetMetadataResolver.Tests
             var parser = new ScriptParser(CreateLoggerFactory());
             var result = parser.ParseFrom(new[] { "ScriptWithFrameworkReference.csx" });
             result.TargetFramework.ShouldBe("netcoreapp1.0");
-        }                       
-        
+        }
+
+        [Fact]
+        public void ShouldExtractNuGet()
+        {
+            ScriptProjectProvider p = ScriptProjectProvider.Create(CreateLoggerFactory());
+            p.CreateProject(Path.GetDirectoryName(new Uri(typeof(ScriptParserTests).GetTypeInfo().Assembly.CodeBase).LocalPath));
+        }
+
+
         private static ILoggerFactory CreateLoggerFactory()
         {
             return new TestOutPutLoggerFactory();
