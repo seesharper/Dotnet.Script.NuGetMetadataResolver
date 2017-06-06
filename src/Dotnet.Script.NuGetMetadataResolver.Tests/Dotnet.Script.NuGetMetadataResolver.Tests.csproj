@@ -24,6 +24,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Sample\SampleScript.csx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="ScriptWithMultiplePackages.csx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

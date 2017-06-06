@@ -17,7 +17,14 @@ namespace Dotnet.Script.NuGetMetadataResolver
     {
         private readonly ICommandRunner commandRunner;
         private readonly IScriptParser scriptParser;
+        private static string PathToNuget;
 
+        static ScriptProjectProvider()
+        {
+            var directory = Path.GetDirectoryName(new Uri(typeof(ScriptProjectProvider).GetTypeInfo().Assembly.CodeBase).LocalPath);
+            PathToNuget = Path.Combine(directory, "NuGet350.exe");
+        }
+        
         /// <summary>
         /// Initializes a new instance of the <see cref="ScriptProjectProvider"/> class.
         /// </summary>
@@ -76,11 +83,11 @@ namespace Dotnet.Script.NuGetMetadataResolver
             ExtractNugetExecutable();
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                commandRunner.Execute("NuGet.exe", $"restore {pathToProjectJson}");
+                commandRunner.Execute(PathToNuget, $"restore {pathToProjectJson}");
             }
             else
             {
-                commandRunner.Execute("mono", $"NuGet.exe restore {pathToProjectJson}");
+                commandRunner.Execute("mono", $"{PathToNuget} restore {pathToProjectJson}");
             }                        
         }
 
@@ -100,13 +107,13 @@ namespace Dotnet.Script.NuGetMetadataResolver
 
         private void ExtractNugetExecutable()
         {
-            if (!File.Exists("NuGet.exe"))
+            if (!File.Exists(PathToNuget))
             {
                 using (Stream input = typeof(ScriptProjectProvider).GetTypeInfo().Assembly.GetManifestResourceStream("Dotnet.Script.NuGetMetadataResolver.NuGet.NuGet.exe"))
                 {
 
                     byte[] byteData = StreamToBytes(input);
-                    File.WriteAllBytes("NuGet.exe", byteData);
+                    File.WriteAllBytes(PathToNuget, byteData);
                 }
             }                  
         }
