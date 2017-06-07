@@ -6,6 +6,7 @@ namespace Dotnet.Script.NuGetMetadataResolver
     using System.Linq;
     using System.Reflection;
     using System.Runtime.InteropServices;
+    using System.Text.RegularExpressions;
     using Microsoft.Extensions.Logging;
 
     /// <summary>
@@ -94,8 +95,13 @@ namespace Dotnet.Script.NuGetMetadataResolver
         private static string GetPathToProjectJson(string targetDirectory)
         {
             var tempDirectory = Path.GetTempPath();
-            
-            var targetDirectoryWithoutRoot = targetDirectory.Substring(Path.GetPathRoot(targetDirectory).Length);
+            var pathRoot = Path.GetPathRoot(targetDirectory);
+            var targetDirectoryWithoutRoot = targetDirectory.Substring(pathRoot.Length);
+            if (pathRoot.Length > 0 && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                var driveLetter = pathRoot.Substring(0,1);
+                targetDirectoryWithoutRoot = Path.Combine(driveLetter, targetDirectoryWithoutRoot);
+            }
             var pathToProjectJsonDirectory = Path.Combine(tempDirectory, "scripts", targetDirectoryWithoutRoot);
             if (!Directory.Exists(pathToProjectJsonDirectory))
             {
