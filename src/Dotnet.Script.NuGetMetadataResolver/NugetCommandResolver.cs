@@ -38,33 +38,23 @@ namespace Dotnet.Script.NuGetMetadataResolver
             if (!File.Exists(pathToNuget))
             {
                 using (Stream input = typeof(ScriptProjectProvider).GetTypeInfo().Assembly.GetManifestResourceStream("Dotnet.Script.NuGetMetadataResolver.NuGet.NuGet.exe"))
+                using (Stream output = File.OpenWrite(pathToNuget))
                 {
-                    byte[] byteData = StreamToBytes(input);
-                    File.WriteAllBytes(pathToNuget, byteData);
+                    CopyStream(input, output);
                 }
             }
         }
 
         /// <summary>
-        /// StreamToBytes - Converts a Stream to a byte array. Eg: Get a Stream from a file,url, or open file handle.
+        /// Copies the contents of input to output. Doesn't close either stream.
         /// </summary>
-        /// <param name="input">input is the stream we are to return as a byte array</param>
-        /// <returns>byte[] The Array of bytes that represents the contents of the stream</returns>
-        private static byte[] StreamToBytes(Stream input)
+        public static void CopyStream(Stream input, Stream output)
         {
-
-            int capacity = input.CanSeek ? (int)input.Length : 0; //Bitwise operator - If can seek, Capacity becomes Length, else becomes 0.
-            using (MemoryStream output = new MemoryStream(capacity)) //Using the MemoryStream output, with the given capacity.
+            byte[] buffer = new byte[8 * 1024];
+            int len;
+            while ((len = input.Read(buffer, 0, buffer.Length)) > 0)
             {
-                int readLength;
-                byte[] buffer = new byte[capacity/*4096*/];  //An array of bytes
-                do
-                {
-                    readLength = input.Read(buffer, 0, buffer.Length);   //Read the memory data, into the buffer
-                    output.Write(buffer, 0, readLength); //Write the buffer to the output MemoryStream incrementally.
-                }
-                while (readLength != 0); //Do all this while the readLength is not 0
-                return output.ToArray();  //When finished, return the finished MemoryStream object as an array.
+                output.Write(buffer, 0, len);
             }
         }
     }
