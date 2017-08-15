@@ -27,6 +27,17 @@
             json.ShouldContain("net46");
         }
 
+        [Fact]
+        public void ShouldCreateNet46Project_FromSource()
+        {
+            ScriptProjectProvider p = ScriptProjectProvider.Create(CreateLoggerFactory());
+            var script = "Console.WriteLine(\"TEST\");";
+
+            var result = p.CreateProject(new []{script});
+            var json = File.ReadAllText(result.PathToProjectJson);
+            json.ShouldContain("net46");
+        }
+
 
         private static ILoggerFactory CreateLoggerFactory()
         {

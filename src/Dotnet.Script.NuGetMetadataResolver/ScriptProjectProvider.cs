@@ -6,13 +6,12 @@ namespace Dotnet.Script.NuGetMetadataResolver
     using System.Linq;
     using System.Reflection;
     using System.Runtime.InteropServices;
-    using System.Text.RegularExpressions;
     using Microsoft.Extensions.Logging;
 
     /// <summary>
     /// A class that is capable of creating a 
     /// a project.json file based on the script files 
-    /// found in a given directory.  
+    /// found in a given directory or sent as argument.
     /// </summary>
     public class ScriptProjectProvider : IScriptProjectProvider
     {
@@ -54,12 +53,26 @@ namespace Dotnet.Script.NuGetMetadataResolver
             var csxFiles = Directory.GetFiles(targetDirectory, "*.csx", SearchOption.AllDirectories);
 
             var parseresult = scriptParser.ParseFrom(csxFiles);
+
+            var pathToProjectJson = GetPathToProjectJson(targetDirectory);
+            return CreateProject(parseresult, pathToProjectJson, targetFramework);
+        }
+
+        public ScriptProjectInfo CreateProject(IEnumerable<string> sources, string targetFramework = "net46")
+        {
+            var parseresult = scriptParser.ParseFromSource(sources);
+
+            var pathToProjectJson = GetPathToProjectJson(".");
+            return CreateProject(parseresult, pathToProjectJson, targetFramework);
+        }
+
+        private ScriptProjectInfo CreateProject(ParseResult parseresult, string pathToProjectJson, string targetFramework)
+        {
             if (parseresult.TargetFramework != null)
             {
                 targetFramework = parseresult.TargetFramework;
             }
 
-            var pathToProjectJson = GetPathToProjectJson(targetDirectory);
             var projectJson = new ProjectJson();
             projectJson.Frameworks.Add(targetFramework, new Dictionary<string, List<string>>());
 
@@ -68,7 +81,7 @@ namespace Dotnet.Script.NuGetMetadataResolver
             {
                 projectJson.Frameworks.First().Value.Add("imports", new List<string>(new[] { "dotnet", "dnxcore50" }));
             }
-            
+
             var packageReferences = parseresult.PackageReferences;
             foreach (var packageReference in packageReferences)
             {

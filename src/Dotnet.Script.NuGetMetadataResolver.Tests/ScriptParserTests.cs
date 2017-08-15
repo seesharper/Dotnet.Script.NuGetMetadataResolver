@@ -43,6 +43,35 @@ namespace Dotnet.Script.NuGetMetadataResolver.Tests
         }
 
         [Fact]
+        public void ShouldResolveMultiplePackages_FromSingleSource()
+        {
+            var parser = new ScriptParser(CreateLoggerFactory());
+            var script = "#r \"nuget:Package,1.0.0\"\r\n#r \"nuget:AnotherPackage,2.0.0\"\r\n";
+
+            var result = parser.ParseFromSource(new[] { script });
+            result.PackageReferences.Count.ShouldBe(2);
+            result.PackageReferences.First().Id.ShouldBe("Package");
+            result.PackageReferences.First().Version.ShouldBe("1.0.0");
+            result.PackageReferences.Last().Id.ShouldBe("AnotherPackage");
+            result.PackageReferences.Last().Version.ShouldBe("2.0.0");
+        }
+
+        [Fact]
+        public void ShouldResolveMultiplePackages_FromMultipleSources()
+        {
+            var parser = new ScriptParser(CreateLoggerFactory());
+            var script1 = "#r \"nuget:Package,1.0.0\"";
+            var script2 = "#r \"nuget:AnotherPackage,2.0.0\"";
+
+            var result = parser.ParseFromSource(new[] { script1, script2 });
+            result.PackageReferences.Count.ShouldBe(2);
+            result.PackageReferences.First().Id.ShouldBe("Package");
+            result.PackageReferences.First().Version.ShouldBe("1.0.0");
+            result.PackageReferences.Last().Id.ShouldBe("AnotherPackage");
+            result.PackageReferences.Last().Version.ShouldBe("2.0.0");
+        }
+
+        [Fact]
         public void ShouldParseTargetFramework()
         {
             var parser = new ScriptParser(CreateLoggerFactory());

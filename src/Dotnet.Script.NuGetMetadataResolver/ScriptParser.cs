@@ -51,6 +51,33 @@
             return new ParseResult(allPackageReferences, currentTargetFramework);
         }
 
+        public ParseResult ParseFromSource(IEnumerable<string> csxSources)
+        {
+            HashSet<PackageReference> allPackageReferences = new HashSet<PackageReference>();                        
+            string currentTargetFramework = null;
+            var count = 0;
+            foreach (var csxSource in csxSources)
+            {
+                logger.LogDebug($"Parsing source index {count++}");
+                var packageReferences = ReadPackageReferences(csxSource);
+                allPackageReferences.UnionWith(packageReferences);
+                string targetFramework = ReadTargetFramework(csxSource);
+                if (targetFramework != null)
+                {
+                    if (currentTargetFramework != null && targetFramework != currentTargetFramework)
+                    {
+                        logger.LogWarning($"Found multiple target frameworks. Using {currentTargetFramework}.");
+                    }
+                    else
+                    {
+                        currentTargetFramework = targetFramework;
+                    }
+                }
+            }
+
+            return new ParseResult(allPackageReferences, currentTargetFramework);
+        }
+
         private IEnumerable<PackageReference> ReadPackageReferences(string fileContent)
         {
             const string pattern = @"^\s*#r\s*""nuget:\s*(.+)\s*,\s*(.*)""";
