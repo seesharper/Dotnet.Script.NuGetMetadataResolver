@@ -1,4 +1,6 @@
-﻿namespace Dotnet.Script.NuGetMetadataResolver
+﻿using Microsoft.CodeAnalysis.Text;
+
+namespace Dotnet.Script.NuGetMetadataResolver
 {
     using System.Collections.Generic;
     using System.IO;
@@ -35,6 +37,34 @@
                 var packageReferences = ReadPackageReferences(fileContent);
                 allPackageReferences.UnionWith(packageReferences);
                 string targetFramework = ReadTargetFramework(fileContent);
+                if (targetFramework != null)
+                {
+                    if (currentTargetFramework != null && targetFramework != currentTargetFramework)
+                    {
+                        logger.LogWarning($"Found multiple target frameworks. Using {currentTargetFramework}.");
+                    }
+                    else
+                    {
+                        currentTargetFramework = targetFramework;
+                    }
+                }
+            }
+
+            return new ParseResult(allPackageReferences, currentTargetFramework);
+        }
+
+        public ParseResult ParseFrom(IEnumerable<SourceText> csxSources)
+        {
+            HashSet<PackageReference> allPackageReferences = new HashSet<PackageReference>();                        
+            string currentTargetFramework = null;
+            var count = 0;
+            foreach (var csxSource in csxSources)
+            {
+                var sourceTextString = csxSource.ToString();
+                logger.LogDebug($"Parsing source index {count++}");
+                var packageReferences = ReadPackageReferences(sourceTextString);
+                allPackageReferences.UnionWith(packageReferences);
+                string targetFramework = ReadTargetFramework(sourceTextString);
                 if (targetFramework != null)
                 {
                     if (currentTargetFramework != null && targetFramework != currentTargetFramework)

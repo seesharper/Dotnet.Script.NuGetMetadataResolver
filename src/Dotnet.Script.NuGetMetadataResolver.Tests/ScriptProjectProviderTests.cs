@@ -3,6 +3,7 @@
     using System;
     using System.IO;
     using System.Reflection;
+    using Microsoft.CodeAnalysis.Text;
     using Microsoft.CodeAnalysis.NuGet.Tests;
     using Microsoft.Extensions.Logging;
     using Shouldly;
@@ -23,6 +24,17 @@
             var pathToScript = Path.Combine(Path.GetDirectoryName(new Uri(typeof(ScriptParserTests).GetTypeInfo().Assembly.CodeBase)
                 .LocalPath),"sample");
             var result = p.CreateProject(pathToScript);
+            var json = File.ReadAllText(result.PathToProjectJson);
+            json.ShouldContain("net46");
+        }
+
+        [Fact]
+        public void ShouldCreateNet46Project_FromSource()
+        {
+            ScriptProjectProvider p = ScriptProjectProvider.Create(CreateLoggerFactory());
+            var script = SourceText.From("Console.WriteLine(\"TEST\");");
+
+            var result = p.CreateProject(new []{script});
             var json = File.ReadAllText(result.PathToProjectJson);
             json.ShouldContain("net46");
         }
