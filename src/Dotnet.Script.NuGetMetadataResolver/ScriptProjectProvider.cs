@@ -1,3 +1,5 @@
+using Microsoft.CodeAnalysis.Text;
+
 namespace Dotnet.Script.NuGetMetadataResolver
 {
     using System;
@@ -53,9 +55,9 @@ namespace Dotnet.Script.NuGetMetadataResolver
             return CreateProject(parseresult, pathToProjectJson, targetFramework);
         }
 
-        public ScriptProjectInfo CreateProject(IEnumerable<string> sources, string targetFramework = "net46")
+        public ScriptProjectInfo CreateProject(IEnumerable<SourceText> sources, string targetFramework = "net46")
         {
-            var parseresult = scriptParser.ParseFromSource(sources);
+            var parseresult = scriptParser.ParseFrom(sources);
 
             var pathToProjectJson = GetPathToProjectJson(".");
             return CreateProject(parseresult, pathToProjectJson, targetFramework);

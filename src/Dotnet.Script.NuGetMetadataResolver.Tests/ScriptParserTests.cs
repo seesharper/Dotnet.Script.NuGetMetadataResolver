@@ -1,9 +1,8 @@
+using Microsoft.CodeAnalysis.Text;
+
 namespace Dotnet.Script.NuGetMetadataResolver.Tests
 {
-    using System;
-    using System.IO;
     using System.Linq;
-    using System.Reflection;
     using Microsoft.CodeAnalysis.NuGet.Tests;
     using Microsoft.Extensions.Logging;
 
@@ -46,9 +45,9 @@ namespace Dotnet.Script.NuGetMetadataResolver.Tests
         public void ShouldResolveMultiplePackages_FromSingleSource()
         {
             var parser = new ScriptParser(CreateLoggerFactory());
-            var script = "#r \"nuget:Package,1.0.0\"\r\n#r \"nuget:AnotherPackage,2.0.0\"\r\n";
+            var script = SourceText.From("#r \"nuget:Package,1.0.0\"\r\n#r \"nuget:AnotherPackage,2.0.0\"\r\n");
 
-            var result = parser.ParseFromSource(new[] { script });
+            var result = parser.ParseFrom(new[] { script });
             result.PackageReferences.Count.ShouldBe(2);
             result.PackageReferences.First().Id.ShouldBe("Package");
             result.PackageReferences.First().Version.ShouldBe("1.0.0");
@@ -60,10 +59,10 @@ namespace Dotnet.Script.NuGetMetadataResolver.Tests
         public void ShouldResolveMultiplePackages_FromMultipleSources()
         {
             var parser = new ScriptParser(CreateLoggerFactory());
-            var script1 = "#r \"nuget:Package,1.0.0\"";
-            var script2 = "#r \"nuget:AnotherPackage,2.0.0\"";
+            var script1 = SourceText.From("#r \"nuget:Package,1.0.0\"");
+            var script2 = SourceText.From("#r \"nuget:AnotherPackage,2.0.0\"");
 
-            var result = parser.ParseFromSource(new[] { script1, script2 });
+            var result = parser.ParseFrom(new[] { script1, script2 });
             result.PackageReferences.Count.ShouldBe(2);
             result.PackageReferences.First().Id.ShouldBe("Package");
             result.PackageReferences.First().Version.ShouldBe("1.0.0");

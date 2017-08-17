@@ -1,3 +1,5 @@
+using Microsoft.CodeAnalysis.Text;
+
 namespace Dotnet.Script.NuGetMetadataResolver
 {
     using System.Collections.Generic;
@@ -24,6 +26,6 @@ namespace Dotnet.Script.NuGetMetadataResolver
         /// <param name="csxSources">A list of csx source for which to parse and resolve NuGet references.</param>
         /// <returns>A <see cref="ParseResult"/>
         /// instance that contains a list of NuGet reference found within the scripts.</returns>
-        ParseResult ParseFromSource(IEnumerable<string> csxSources);
+        ParseResult ParseFrom(IEnumerable<SourceText> csxSources);
     }
 }

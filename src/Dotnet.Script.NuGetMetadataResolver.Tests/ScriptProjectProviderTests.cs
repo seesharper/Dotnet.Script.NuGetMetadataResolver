@@ -1,4 +1,6 @@
-﻿namespace Dotnet.Script.NuGetMetadataResolver.Tests
+﻿using Microsoft.CodeAnalysis.Text;
+
+namespace Dotnet.Script.NuGetMetadataResolver.Tests
 {
     using System;
     using System.IO;
@@ -31,7 +33,7 @@
         public void ShouldCreateNet46Project_FromSource()
         {
             ScriptProjectProvider p = ScriptProjectProvider.Create(CreateLoggerFactory());
-            var script = "Console.WriteLine(\"TEST\");";
+            var script = SourceText.From("Console.WriteLine(\"TEST\");");
 
             var result = p.CreateProject(new []{script});
             var json = File.ReadAllText(result.PathToProjectJson);

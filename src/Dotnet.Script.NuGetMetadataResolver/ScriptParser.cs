@@ -1,4 +1,6 @@
-﻿namespace Dotnet.Script.NuGetMetadataResolver
+﻿using Microsoft.CodeAnalysis.Text;
+
+namespace Dotnet.Script.NuGetMetadataResolver
 {
     using System.Collections.Generic;
     using System.IO;
@@ -51,17 +53,18 @@
             return new ParseResult(allPackageReferences, currentTargetFramework);
         }
 
-        public ParseResult ParseFromSource(IEnumerable<string> csxSources)
+        public ParseResult ParseFrom(IEnumerable<SourceText> csxSources)
         {
             HashSet<PackageReference> allPackageReferences = new HashSet<PackageReference>();                        
             string currentTargetFramework = null;
             var count = 0;
             foreach (var csxSource in csxSources)
             {
+                var sourceTextString = csxSource.ToString();
                 logger.LogDebug($"Parsing source index {count++}");
-                var packageReferences = ReadPackageReferences(csxSource);
+                var packageReferences = ReadPackageReferences(sourceTextString);
                 allPackageReferences.UnionWith(packageReferences);
-                string targetFramework = ReadTargetFramework(csxSource);
+                string targetFramework = ReadTargetFramework(sourceTextString);
                 if (targetFramework != null)
                 {
                     if (currentTargetFramework != null && targetFramework != currentTargetFramework)
