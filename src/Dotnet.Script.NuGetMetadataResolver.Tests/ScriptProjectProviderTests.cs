@@ -1,10 +1,9 @@
-﻿using Microsoft.CodeAnalysis.Text;
-
-namespace Dotnet.Script.NuGetMetadataResolver.Tests
+﻿namespace Dotnet.Script.NuGetMetadataResolver.Tests
 {
     using System;
     using System.IO;
     using System.Reflection;
+    using Microsoft.CodeAnalysis.Text;
     using Microsoft.CodeAnalysis.NuGet.Tests;
     using Microsoft.Extensions.Logging;
     using Shouldly;

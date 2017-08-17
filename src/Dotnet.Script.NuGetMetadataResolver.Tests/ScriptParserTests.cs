@@ -1,8 +1,7 @@
-using Microsoft.CodeAnalysis.Text;
-
 namespace Dotnet.Script.NuGetMetadataResolver.Tests
 {
     using System.Linq;
+    using Microsoft.CodeAnalysis.Text;
     using Microsoft.CodeAnalysis.NuGet.Tests;
     using Microsoft.Extensions.Logging;
 
